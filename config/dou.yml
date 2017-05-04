@@ -1,0 +1,7 @@
+url: https://jobs.dou.ua/companies/
+csrfmiddlewaretoken: input[name='csrfmiddlewaretoken']
+post: https://jobs.dou.ua/companies/xhr-load/?
+useProxy: false
+proxyHost: localhost
+proxyPort: 3128
+timeout: 5000
