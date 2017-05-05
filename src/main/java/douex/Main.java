@@ -1,6 +1,5 @@
 package douex;
 
-import douex.cfg.Configurator;
 import douex.dou.Dou;
 
 /**
@@ -12,7 +11,7 @@ public class Main {
 
         Dou dou = Dou.getInstance();
        
-        if (dou.setCfg(Configurator.defaultCfg())) {
+        if (dou.status()) {
             dou.post(0).forEach(System.out::println);
             System.out.println("-----------------");
             dou.post(20).forEach(System.out::println);

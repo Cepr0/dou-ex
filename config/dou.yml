@@ -1,7 +1,12 @@
-url: https://jobs.dou.ua/companies/
-csrfmiddlewaretoken: input[name='csrfmiddlewaretoken']
-post: https://jobs.dou.ua/companies/xhr-load/?
-useProxy: false
+startUrl: https://jobs.dou.ua/companies/
+csrfTokenPattern: input[name='csrfmiddlewaretoken']
+dataUrl: https://jobs.dou.ua/companies/xhr-load/?
+useProxy: true
 proxyHost: localhost
 proxyPort: 3128
+# Connection timeout, ms
 timeout: 5000
+# Delay between loading next portion of data from the site, ms
+loadingDataDelay:
+  - 2000
+  - 5000
