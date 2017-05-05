@@ -4,7 +4,6 @@ import douex.dou.Dou;
 import lombok.Data;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 
@@ -20,9 +19,5 @@ public class Config {
     private String proxyHost = "localhost";
     private Integer proxyPort = 3128;
     private Integer timeout = 2000;
-    private List<String> loadingDataDelay = asList("3000", "5000");
-
-    public List<Integer> getDelayValues() {
-        return loadingDataDelay.stream().map(Integer::valueOf).collect(Collectors.toList());
-    }
+    private List<Integer> loadingDataDelay = asList(3000, 5000);
 }

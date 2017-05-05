@@ -109,7 +109,7 @@ public class Dou {
      * Perform random delay based on {@link Config#loadingDataDelay}
      */
     private void delay() {
-        List<Integer> delayValues = cfg.getDelayValues();
+        List<Integer> delayValues = cfg.getLoadingDataDelay();
         try {
             Thread.sleep(current().nextInt(delayValues.get(0), delayValues.get(1)));
         } catch (InterruptedException ignored) {
