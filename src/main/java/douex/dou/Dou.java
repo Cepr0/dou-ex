@@ -105,10 +105,13 @@ public class Dou {
                         .map(el -> el.select("div[class='h2'] a[class='cn-a']").first().text());
     }
 
+    /**
+     * Perform random delay based on {@link Config#loadingDataDelay}
+     */
     private void delay() {
-        List<Integer> delay = cfg.getDelays();
+        List<Integer> delayValues = cfg.getDelayValues();
         try {
-            Thread.sleep(current().nextInt(delay.get(0), delay.get(1)));
+            Thread.sleep(current().nextInt(delayValues.get(0), delayValues.get(1)));
         } catch (InterruptedException ignored) {
         }
     }

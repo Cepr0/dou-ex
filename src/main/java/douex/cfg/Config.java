@@ -22,7 +22,7 @@ public class Config {
     private Integer timeout = 2000;
     private List<String> loadingDataDelay = asList("3000", "5000");
 
-    public List<Integer> getDelays() {
+    public List<Integer> getDelayValues() {
         return loadingDataDelay.stream().map(Integer::valueOf).collect(Collectors.toList());
     }
 }
