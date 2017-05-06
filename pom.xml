@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>DOUex</name>
-    <description>Extracting company emails from DOU.UA</description>
+    <description>DOU email extractor - extracting company emails from DOU.UA</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

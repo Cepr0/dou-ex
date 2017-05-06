@@ -46,10 +46,11 @@ public class Dou {
     
     /**
      * Set configuration and perform connection to DOU.UA
+     *
      * @param cfg {@link Config}
      */
     private void setCfg(@NonNull Config cfg) {
-    
+        
         this.cfg = cfg;
         cookies = null;
         csrfMiddlewareToken = null;
@@ -100,6 +101,7 @@ public class Dou {
     /**
      * Initial connection to dou.ua
      * <p>Calling this method is necessary to get cookies and csrf middleware token from the site
+     *
      * @throws IOException if connection fails | it return non 200 status | csrf token not found on the  page.
      */
     private void connect() throws IOException {
@@ -138,6 +140,7 @@ public class Dou {
                     i += 20;
                 }
             }
+            LOG.info("Done.");
         } catch (IOException e) {
             LOG.error(String.format("Getting companies data is failed at position: %d! Cause: %s", i, e.getMessage()));
         }
@@ -145,6 +148,7 @@ public class Dou {
     
     /**
      * Collect portion of companies data to inner que
+     *
      * @param dataPosition address of companies data multiple of 20: 0, 20, 40... etc.
      *                     <p>0 - get data of first 20 companies</p>
      *                     <p>20 - get data of next 20 companies from, etc</p>
@@ -157,7 +161,7 @@ public class Dou {
             LOG.error("Cannot get data - csrfMiddlewareToken or cookies are empty!");
             return false;
         }
-
+        
         Connection.Response response = getConnection(cfg.getDataUrl())
                 .cookies(cookies)
                 .header("Accept", "application/json")
@@ -170,7 +174,7 @@ public class Dou {
                 .execute();
         
         String json = response.body();
-    
+        
         HtmlContainer htmlContainer = new Gson().fromJson(json, HtmlContainer.class);
         Document document = Jsoup.parse(htmlContainer.html);
         processCompanies(document.select("div[class='company']"));
@@ -184,6 +188,7 @@ public class Dou {
     
     /**
      * Companies data processing and adding ti data que.
+     *
      * @param companies set of {@link Elements} with company data.
      * @throws IOException if we have a problem during the connection.
      */
@@ -194,17 +199,17 @@ public class Dou {
         }
         
         for (Element company : companies) {
-    
+            
             Element cnA = company.select("a[class='cn-a']").first();
             if (cnA != null) {
                 String name = cnA.text();
                 String url = cnA.attributes().get("href");
-    
+                
                 Element descr = company.select("div[class='descr']").first();
                 String description = descr != null ? descr.text() : "";
-    
+                
                 String officesUrl = url + "offices/";
-    
+                
                 Company douCompany = new Company(name, url, description, officesUrl);
                 douCompany.getOffices().addAll(getOffices(officesUrl));
                 // this.companies.add(douCompany);
@@ -217,12 +222,13 @@ public class Dou {
     
     /**
      * Get {@link List} of {@link Office}s processing the data from the url of company offices.
+     *
      * @param officesUrl url to the company offices.
      * @return {@link List} of {@link Office}s.
      * @throws IOException if we have a problem during the connection.
      */
     private List<Office> getOffices(String officesUrl) throws IOException {
-    
+        
         List<Office> result = new ArrayList<>();
         
         Document document = getConnection(officesUrl).get();
@@ -231,9 +237,9 @@ public class Dou {
             Element h4 = office.select("h4").first();
             if (h4 != null) {
                 String city = h4.text();
-    
+                
                 Office companyOffice = new Office(city);
-    
+                
                 Elements contacts = office.select("div[class='contacts']");
                 for (Element contact : contacts) {
                     Element mail = contact.select("div[class='mail'] a").first();
@@ -256,12 +262,13 @@ public class Dou {
      * Used to check status of {@link Dou}. If status is 'false' then we cannot get data from {@link Dou}
      * <p>Checking status is necessary after getting instance of {@link Dou}
      * or after calling {@link Dou#setCfg(douex.dou.cfg.Config)} method
+     *
      * @return 'true' if we can get data from {@link Dou} and 'false' otherwise.
      */
     public boolean status() {
         return csrfMiddlewareToken != null && cookies != null;
     }
-
+    
     /**
      * Perform random delay based on {@link Config#loadingDataDelay}
      */
@@ -275,8 +282,9 @@ public class Dou {
     
     /**
      * Get connection to given url (through proxy or not - depend on {@link Dou#cfg})
+     *
      * @param url The destination.
-     * @return {@li Connection} to the given url.
+     * @return {@link Connection} to the given url.
      * @throws IOException if something happens during connection.
      */
     private Connection getConnection(String url) throws IOException {
