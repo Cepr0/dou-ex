@@ -1,0 +1,41 @@
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date [%thread] %-5level %logger{0} [%file:%line] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <param name="append" value="false"/>
+
+        <file>log/dou-ex.log</file>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%date [%thread] %-5level %logger{0} [%file:%line] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="data" class="ch.qos.logback.core.FileAppender">
+        <param name="append" value="false"/>
+        <file>data/data.csv</file>
+        <encoder>
+            <charset>windows-1251</charset>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--<root level="info">-->
+        <!--<appender-ref ref="file"/>-->
+        <!--<appender-ref ref="console"/>-->
+    <!--</root>-->
+
+    <logger name="douex.dou.Dou" level="info">
+        <appender-ref ref="file" />
+        <appender-ref ref="console"/>
+    </logger>
+
+    <logger name="douex.Main" level="info">
+        <appender-ref ref="data" />
+    </logger>
+
+</configuration>

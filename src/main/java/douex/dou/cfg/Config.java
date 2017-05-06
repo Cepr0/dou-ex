@@ -1,4 +1,4 @@
-package douex.cfg;
+package douex.dou.cfg;
 
 import douex.dou.Dou;
 import lombok.Data;

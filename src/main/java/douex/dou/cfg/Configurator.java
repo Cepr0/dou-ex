@@ -1,4 +1,4 @@
-package douex.cfg;
+package douex.dou.cfg;
 
 import com.esotericsoftware.yamlbeans.YamlReader;
 import lombok.extern.slf4j.Slf4j;

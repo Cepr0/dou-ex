@@ -1,22 +1,41 @@
 package douex;
 
+import douex.dou.Company;
 import douex.dou.Dou;
+import douex.dou.Office;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author Cepro, 2017-04-24
+ * Main class of the application
+ * <p>Dou ex - companies emails extractor from DOU.UA
  */
+@Slf4j
 public class Main {
-
+    private static Dou dou;
+    
     public static void main(String... args) throws Exception {
-
-        Dou dou = Dou.getInstance();
-       
+        
+        dou = Dou.getInstance();
+    
         if (dou.status()) {
-            dou.post(0).forEach(System.out::println);
-            System.out.println("-----------------");
-            dou.post(20).forEach(System.out::println);
-            System.out.println("-----------------");
-            dou.post(40).forEach(System.out::println);
+            dou.start();
+            new Thread(Main::getData).start();
+        }
+    }
+    
+    private static void getData() {
+        int i = 1;
+        while (true) {
+            if (!dou.data().isEmpty()) {
+                
+                Company company = dou.data().poll();
+                if (company == null) break;
+    
+                for (Office office : company.getOffices()) {
+                    LOG.info(String.format("%d;%s;%s;%s;%s", i, company.getName(), company.getOfficesUrl(), office.getCity(), office.getEmailsInStr()));
+                }
+                i++;
+            }
         }
     }
 }
