@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main class of the application
- * <p>Dou ex - companies emails extractor from DOU.UA
+ * <p>DOUex - Extracting company emails from DOU.UA
  */
 @Slf4j
 public class Main {

@@ -1,6 +1,6 @@
-# DOU ex 
+# DOUex 
 
-_Companies email extractor from [DOU.UA](https://dou.ua)_
+_Extracting company emails from [DOU.UA](https://dou.ua)_
 
 Application was useful if you want to send your CV to Ukrainian IT companies.
 
@@ -15,7 +15,7 @@ mvn package
 ## Usage
 
 ```
-java -jar target/dou-ex-1.0.jar
+java -jar target/dou-ex-1.0-RELEASE.jar
 ```
 
 Result of extraction is collected in **data/data.csv** in windows-1251 charset.
