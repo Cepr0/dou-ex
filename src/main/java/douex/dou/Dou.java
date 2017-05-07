@@ -26,6 +26,12 @@ public class Dou {
     
     private Config cfg;
     
+    private String dataUrl;
+    
+    private boolean isCompanies;
+    
+    private final Set<String> companies = new HashSet<>();
+    
     private Map<String, String> cookies;
     
     private String csrfMiddlewareToken;
@@ -54,16 +60,10 @@ public class Dou {
         this.cfg = cfg;
         cookies = null;
         csrfMiddlewareToken = null;
-        
-        try {
-            connect();
-        } catch (IOException e) {
-            LOG.error(String.format("Connecting or getting data is failed! Cause: %s", e.getMessage()));
-        }
     }
     
     /**
-     * Start (or resumed if interrupted) collecting data process
+     * Start (or resumed if interrupted) the data collecting process
      */
     public void start() {
         if (thread == null) {
@@ -99,37 +99,76 @@ public class Dou {
     }
     
     /**
-     * Initial connection to dou.ua
-     * <p>Calling this method is necessary to get cookies and csrf middleware token from the site
+     * The same method as {@link Dou#connect(String, String)}.
+     * <p>Used it if it's necessary to fetch all data without any city or category.
      *
-     * @throws IOException if connection fails | it return non 200 status | csrf token not found on the  page.
+     * @return 'true' if connection is successful, 'false' - otherwise.
      */
-    private void connect() throws IOException {
-        String url = cfg.getStartUrl();
-        Connection.Response response = getConnection(url).execute();
-        
-        int statusCode = response.statusCode();
-        
-        if (statusCode != 200) {
-            throw new IOException(String.format("Status is %d", statusCode));
-        }
-        
-        cookies = response.cookies();
-        Document document = response.parse();
-        String tokenPattern = cfg.getCsrfTokenPattern();
-        Elements tokenElements = document.select(tokenPattern);
-        
-        if (tokenElements.isEmpty()) {
-            throw new IOException(String.format("Element '%s' not found on the page %s", tokenPattern, url));
-        }
-        
-        csrfMiddlewareToken = tokenElements.first().val();
-        
-        LOG.info("Successfully connected to " + url);
+    public boolean connect() {
+        return connect(null, null);
     }
     
     /**
-     * Main loop of collecting data
+     * Initial connection to dou.ua
+     * <p>Calling this method is necessary to get cookies and csrf middleware token from the site,
+     * prior to start fetching data with method {@link Dou#start()}.
+     *
+     * @param city     {@link String} with city name - set if it's necessary to fetch data by city, otherwise - set 'null'.
+     * @param category {@link String} with category name (for example 'Java') - set if it's necessary to fetch data by category, otherwise - set 'null'.
+     * @return 'true' if connection is successful, 'false' - otherwise.
+     */
+    public boolean connect(String category, String city) {
+    
+        String baseUrl;
+        
+        if (category == null && city == null) {
+            baseUrl = cfg.getCompaniesUrl();
+            isCompanies = true;
+        } else {
+
+            baseUrl = cfg.getVacanciesUrl();
+
+            dataUrl = baseUrl + cfg.getDataUrl()
+                    + (category != null ? "category=" + category + "&" : "")
+                    + (city != null ? "city=" + city : "");
+
+            isCompanies = false;
+        }
+        
+        try {
+            Connection.Response response = getConnection(baseUrl).execute();
+            
+            int statusCode = response.statusCode();
+            
+            if (statusCode != 200) {
+                LOG.error(String.format("Bad connection. Status is %d", statusCode));
+                return false;
+            }
+            
+            cookies = response.cookies();
+            Document document = response.parse();
+            String tokenPattern = cfg.getCsrfTokenPattern();
+            Elements tokenElements = document.select(tokenPattern);
+            
+            if (tokenElements.isEmpty()) {
+                LOG.error(String.format("Element '%s' not found on the page %s", tokenPattern, baseUrl));
+                return false;
+            }
+            
+            csrfMiddlewareToken = tokenElements.first().val();
+            
+            LOG.info("Successfully connected to " + baseUrl);
+            
+        } catch (IOException e) {
+            LOG.error(String.format("Connecting or getting data is failed! Cause: %s", e.getMessage()));
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Main loop of data collection
      */
     private void processData() {
         int i = 0;
@@ -147,7 +186,7 @@ public class Dou {
     }
     
     /**
-     * Collect portion of companies data to inner que
+     * Collect portion of companies data to inner queue
      *
      * @param dataPosition address of companies data multiple of 20: 0, 20, 40... etc.
      *                     <p>0 - get data of first 20 companies</p>
@@ -162,11 +201,11 @@ public class Dou {
             return false;
         }
         
-        Connection.Response response = getConnection(cfg.getDataUrl())
+        Connection.Response response = getConnection(dataUrl)
                 .cookies(cookies)
                 .header("Accept", "application/json")
                 .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                .header("Referer", cfg.getStartUrl())
+                .header("Referer", cfg.getCompaniesUrl())
                 .data("csrfmiddlewaretoken", csrfMiddlewareToken)
                 .data("count", String.valueOf(dataPosition))
                 .method(Connection.Method.POST)
@@ -177,7 +216,12 @@ public class Dou {
         
         HtmlContainer htmlContainer = new Gson().fromJson(json, HtmlContainer.class);
         Document document = Jsoup.parse(htmlContainer.html);
-        processCompanies(document.select("div[class='company']"));
+        
+        if(isCompanies) {
+            processCompanies(document.select("div[class='company']"));
+        } else {
+            processVacancies(document.select("div[class='vacancy']"));
+        }
         
         if (htmlContainer.last) {
             this.data.add(null);
@@ -187,9 +231,50 @@ public class Dou {
     }
     
     /**
-     * Companies data processing and adding ti data que.
+     * Companies data (from vacancy blocks) processing and adding to data queue.
      *
-     * @param companies set of {@link Elements} with company data.
+     * @param vacancies collection of {@link Elements} with vacancy data.
+     * @throws IOException if something happens during connection.
+     */
+    private void  processVacancies(Elements vacancies) throws IOException {
+    
+        if (vacancies.isEmpty()) {
+            LOG.error("List of 'vacancies' blocks is empty!");
+            return;
+        }
+    
+        for (Element vacancy : vacancies) {
+    
+            Element company = vacancy.select("a[class='company']").first();
+            if(company != null) {
+                String name = company.text().replace("\u00A0","");
+    
+                if (companies.contains(name)) {
+                    continue;
+                }
+                
+                companies.add(name);
+                
+                String url = company.attr("href");
+                url = url.substring(0, url.indexOf("vacancies"));
+                
+                String officesUrl = url + "offices/";
+                
+                Company douCompany = new Company(name, url, "", officesUrl);
+                
+                douCompany.getOffices().addAll(getOffices(officesUrl));
+                
+                this.data.add(douCompany);
+            } else {
+                LOG.warn("Block 'company' not found, skipping company...");
+            }
+        }
+    }
+    
+    /**
+     * Companies data processing and adding to data queue.
+     *
+     * @param companies collection of {@link Elements} with company data.
      * @throws IOException if we have a problem during the connection.
      */
     private void processCompanies(Elements companies) throws IOException {

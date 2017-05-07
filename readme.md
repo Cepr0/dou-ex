@@ -17,10 +17,27 @@ mvn package
 ## Usage
 
 ```
-java -jar target/dou-ex-1.0-RELEASE.jar
+java -jar target/dou-ex-1.1-RELEASE.jar [category] [city]
 ```
 
-Result of extraction is collected in **data/data.csv** in windows-1251 charset.
+For example: 
+
+Getting all company emails from DOU:
+```
+java -jar target/dou-ex-1.1-RELEASE.jar
+```
+
+Getting company emails with **Java** vacancies:
+```
+java -jar target/dou-ex-1.1-RELEASE.jar java
+```
+
+Getting company emails with **Java** vacancies for **Kiev**:
+```
+java -jar target/dou-ex-1.1-RELEASE.jar java Киев
+```
+
+Result of extraction is stored in **data/dou-emails-[category]-[city]-{current date/time}.csv** in UTF-8 charset.
 
 _Result example:_
 
@@ -45,7 +62,7 @@ of the data you can change these parameters in config file **config/dou.yml**:
     useProxy: true
     proxyHost: localhost
     proxyPort: 3128
-    # Delay between loading next portion of data from the site, ms
+    # Delay between loading next portion of data from the site (min/max), ms
     loadingDataDelay:
       - 1000
       - 3000

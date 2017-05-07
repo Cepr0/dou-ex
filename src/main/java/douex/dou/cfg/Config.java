@@ -12,7 +12,8 @@ import static java.util.Arrays.asList;
  */
 @Data
 public class Config {
-    private String startUrl = "https://jobs.dou.ua/companies/";
+    private String companiesUrl = "https://jobs.dou.ua/companies/";
+    private String vacanciesUrl = "https://jobs.dou.ua/vacancies/";
     private String csrfTokenPattern = "input[name='csrfmiddlewaretoken']";
     private String dataUrl = "https://jobs.dou.ua/companies/xhr-load/?";
     private Boolean useProxy = false;
